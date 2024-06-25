@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>
+      <p>Welcome to Dasboard <span><%= user.email %></span></p>
+    </div>
+
+    <button id="showData" type="submit">Show data</button>
+
+    <script>
+      document
+        .getElementById("showData")
+        .addEventListener("click", function (event) {
+          event.preventDefault(); 
+
+          fetch("/login/dashboard/resources", { redirect: "manual" })
+            .then((response) => {
+              if (response.type === "opaqueredirect") {
+                
+                window.location.href = "/";
+                return;
+              }
+              return response.json();
+            })
+            .then((data) => {
+              console.log(data);
+            })
+            .catch((error) => {
+              console.error(
+                "There was a problem with the fetch operation:",
+                error
+              );
+            });
+        });
+    </script>
+  </body>
+</html>
