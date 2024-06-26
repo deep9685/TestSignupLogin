@@ -88,9 +88,9 @@ const storage  = multer.diskStorage({
 const upload = multer({storage: storage});
 
 
-// router.get('/upload', (req,res) => {
-//     res.render('fileupload.ejs');
-// });
+router.get('/upload', (req,res) => {
+    res.render('fileupload.ejs');
+});
 
 router.post('/upload', upload.array('files'), (req, res) => {
 
