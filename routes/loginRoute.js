@@ -116,4 +116,29 @@ router.get('/upload', (req,res) => {
 //     });
 // })
 
+
+router.post('/upload', upload.array('files'), async (req, res) => {
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'No files were uploaded.' });
+    }
+
+    const fileDetails = files.map(file => [
+        file.originalname,
+        file.path,
+        file.mimetype
+    ]);
+
+    const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
+
+    try {
+        const [result] = await pool.query(sql, [fileDetails]);
+        res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
+    } catch (err) {
+        console.error('Database insert error:', err);
+        res.status(500).json({ message: 'File upload failed' });
+    }
+});
+
 module.exports = router;
