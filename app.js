@@ -6,15 +6,32 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-const connection = require('./db')
+const pool = require('./db');
 
-connection.connect(function(err) {
-    if(err){
-        console.log(err, 'cannot connet');
+
+// const connection = require('./db')
+
+// connection.connect(function(err) {
+//     if(err){
+//         console.log(err, 'cannot connet');
+//         return;
+//     }
+
+//     console.log("Database connected");
+// });
+
+pool.getConnection((err, connection) => {
+
+    console.log("i am here");
+    if (err) {
+        console.error('Error connecting to the database:', err);
         return;
     }
 
-    console.log("Database connected");
+    console.log('Database connected');
+
+    // Release the connection back to the pool
+    connection.release();
 });
 
 

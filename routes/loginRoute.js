@@ -8,7 +8,9 @@ const multer = require("multer");
 const {checkForAuthenticationCookie} = require("../middleware/authentication")
 
 
-const connection = require('../db');
+// const connection = require('../db');
+const pool = require('../db');
+
 
 router.post('/', (req, res) => {
     const {email, password} = req.body;
@@ -56,22 +58,20 @@ router.post('/', (req, res) => {
     });
 });
 
-router.get('/data', checkForAuthenticationCookie("token"),(req, res) => {
-    
-    connection.query('SELECT email,role from users', (err, result) => {
-        if(err) {
-            // console.error(err);
-            return res.status(500).json({error: 'Internal server error'});
+
+router.get('/data', checkForAuthenticationCookie("token"),async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT email, role FROM users');
+
+        if (rows.length > 0) {
+            return res.status(200).json(rows);
+        } else {
+            return res.status(404).json({ message: 'No data found' });
         }
-        if(result.length > 0){
-            // console.log(result);
-            return res.status(200).json(result);
-        }
-        else{
-            // console.log("No data");
-            return res.status(404).json({message: 'No data found'});
-        }
-    });    
+    } catch (err) {
+        console.error('Database query error:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 // setting up multer for file upload
