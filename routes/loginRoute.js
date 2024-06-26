@@ -9,10 +9,8 @@ const {checkForAuthenticationCookie} = require("../middleware/authentication")
 
 const connection = require('../db');
 
-router.post('/dashboard', (req, res) => {
+router.post('/', (req, res) => {
     const {email, password} = req.body;
-
-    // console.log(req.body);
 
     //now checking email and password against database
     connection.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
@@ -39,12 +37,8 @@ router.post('/dashboard', (req, res) => {
                     } catch (error) {
                         return res.status(500).send('Internal server error');
                     }
-                
-                    // res.send('Login Successfull.'); 
-                    // res.send('Welcome to the dashboard, ' + user.email + '!');
-                    // res.render('welcome.ejs',{user});
 
-                    return res.cookie("token", token).render('welcome.ejs',{user});
+                    return res.cookie("token", token).send(`Standard login post request: Welcome ${email}`);
             
                 }
                 else
@@ -61,7 +55,7 @@ router.post('/dashboard', (req, res) => {
     });
 });
 
-router.get('/dashboard/resources', checkForAuthenticationCookie("token"), (req, res) => {
+router.get('/resources', checkForAuthenticationCookie("token"), (req, res) => {
     console.log("I am in resource route");
 
     res.status(201).json({

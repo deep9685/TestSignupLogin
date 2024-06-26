@@ -8,13 +8,16 @@ const connection = require('../db');
 
 
 
-router.post('/register', (req,res) => {
+router.post('/', (req,res) => {
     
     const {email, password, role } = req.body;
+
+    console.log(req.body);
 
       //Hash the password and save the user in the database
       bcrypt.hash(password, saltRounds, (err, hash) => {
         if (err) {
+          console.log(err);
           return res.status(500).json({ error: "Error hashing password." });
         }
 
@@ -27,7 +30,7 @@ router.post('/register', (req,res) => {
             if (err) throw err;
 
             console.log(result);
-            res.send(`Standard post request: Welcome ${email}`);
+            res.send(`Standard Signup post request: Welcome ${email}`);
           });
         } catch (err) {
           console.log(err.sqlMessage);
