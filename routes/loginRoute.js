@@ -31,13 +31,13 @@ router.post('/dashboard', (req, res) => {
                         token = jwt.sign(
                             {
                                 email: user.email,
-                                role:  user.role,
+                                role: user.role,
                             },
                             process.env.JWT_SECRET,
                             { expiresIn: "1h" }
                         );
                     } catch (error) {
-                        
+                        return res.status(500).send('Internal server error');
                     }
                 
                     // res.send('Login Successfull.'); 
@@ -49,14 +49,13 @@ router.post('/dashboard', (req, res) => {
                 }
                 else
                 {
-                    res.redirect('/login');
-
+                    return res.status(401).send('Incorrect password');
                 }
             });
         }
         else
         {
-            res.redirect('/signup');
+            return res.status(404).send('Email not found, please sign up');
             
         }
     });
