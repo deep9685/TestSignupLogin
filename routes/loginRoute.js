@@ -55,16 +55,23 @@ router.post('/', (req, res) => {
     });
 });
 
-router.get('/resources', checkForAuthenticationCookie("token"), (req, res) => {
-    console.log("I am in resource route");
-
-    res.status(201).json({
-                success: true,
-                data: {
-                    userId: "123",
-                    email: "deepak@gamil.com",
-                },
-            });
+router.get('/data', checkForAuthenticationCookie("token"),(req, res) => {
+    
+    connection.query('SELECT email,role from users', (err, result) => {
+        if(err) {
+            // console.error(err);
+            return res.status(500).json({error: 'Internal server error'});
+        }
+        if(result.length > 0){
+            // console.log(result);
+            return res.status(200).json(result);
+        }
+        else{
+            // console.log("No data");
+            return res.status(404).json({message: 'No data found'});
+        }
+    });
+    
 });
 
 module.exports = router;
