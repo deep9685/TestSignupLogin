@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 
 const {checkForAuthenticationCookie} = require("../middleware/authentication")
 
@@ -73,8 +74,46 @@ router.get('/data', checkForAuthenticationCookie("token"),(req, res) => {
     });    
 });
 
-router.post('/file', checkForAuthenticationCookie("toke"), (req, res) => {
+// setting up multer for file upload
+const storage  = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, "./upload");
+    },
+
+    filename: function(req, file, cb){
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({storage: storage});
+
+
+// router.get('/upload', (req,res) => {
+//     res.render('fileupload.ejs');
+// });
+
+router.post('/upload', upload.array('files'), (req, res) => {
+
+    const files = req.files;
+    if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'No files were uploaded.' });
+    }
+
+    const fileDetails = files.map(file => [
+        file.originalname,
+        file.path,
+        file.mimetype
+    ]);
+
+    const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
     
+    connection.query(sql, [fileDetails], (err, result) => {
+        if (err) {
+            console.error('Database insert error:', err);
+            return res.status(500).json({ message: 'File upload failed' });
+        }
+        res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
+    });
 })
 
 module.exports = router;
