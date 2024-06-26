@@ -14,7 +14,7 @@ function checkForAuthenticationCookie(cookieName){
         try{
             const userPayload = validateToken(tokenCookieValue);
             req.user = userPayload;
-            console.log(userPayload);
+            // console.log(userPayload);
             return next();  
         }catch(error) {
             return res.status(404).send('token not generated');

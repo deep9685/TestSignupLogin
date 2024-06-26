@@ -70,8 +70,11 @@ router.get('/data', checkForAuthenticationCookie("token"),(req, res) => {
             // console.log("No data");
             return res.status(404).json({message: 'No data found'});
         }
-    });
-    
+    });    
 });
+
+router.post('/file', checkForAuthenticationCookie("toke"), (req, res) => {
+    
+})
 
 module.exports = router;
