@@ -6,7 +6,7 @@ function checkForAuthenticationCookie(cookieName){
 
         if(!tokenCookieValue){
             
-            return res.redirect('/');
+            return res.status(404).send('token not found');
             
             // return next()
         }
@@ -17,8 +17,7 @@ function checkForAuthenticationCookie(cookieName){
             console.log(userPayload);
             return next();  
         }catch(error) {
-            console.log("token not generated");
-            return res.redirect('/');
+            return res.status(404).send('token not generated');
         }
     };   
 }
