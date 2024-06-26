@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
@@ -32,7 +33,7 @@ router.post('/dashboard', (req, res) => {
                                 email: user.email,
                                 role:  user.role,
                             },
-                            "WaterinOcean",
+                            process.env.JWT_SECRET,
                             { expiresIn: "1h" }
                         );
                     } catch (error) {
