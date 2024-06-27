@@ -59,6 +59,52 @@ const pool = require('../db');
 // });
 
 
+router.post('/', (req, res) => {
+    const { email, password } = req.body;
+
+    // Checking email and password against database
+    pool.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
+        if (err) {
+            console.error('Database query error:', err);
+            return res.status(500).send('Internal server error');
+        }
+
+        if (result.length > 0) {
+            const user = result[0];
+
+            bcrypt.compare(password, user.password, (bcryptErr, bcryptResult) => {
+                if (bcryptErr) {
+                    console.error('Bcrypt comparison error:', bcryptErr);
+                    return res.status(500).send('Internal server error');
+                }
+
+                if (bcryptResult) {
+                    let token;
+                    try {
+                        token = jwt.sign(
+                            {
+                                email: user.email,
+                                role: user.role,
+                            },
+                            process.env.JWT_SECRET,
+                            { expiresIn: "1h" }
+                        );
+                    } catch (error) {
+                        console.error('JWT signing error:', error);
+                        return res.status(500).send('Internal server error');
+                    }
+
+                    return res.cookie("token", token).send(`Standard login post request: Welcome ${email}`);
+                } else {
+                    return res.status(401).send('Incorrect password');
+                }
+            });
+        } else {
+            return res.status(404).send('Email not found, please sign up');
+        }
+    });
+});
+
 router.get('/data',async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT email, role FROM users');
