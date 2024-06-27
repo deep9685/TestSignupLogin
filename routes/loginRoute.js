@@ -15,7 +15,7 @@ router.use(express.json()); // Middleware to parse JSON data
 router.use(express.urlencoded({ extended: true }));
 
 
-router.post('/', async (req, res) => {
+router.post('/', checkForAuthenticationCookie("token"),async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
