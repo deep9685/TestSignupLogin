@@ -11,98 +11,55 @@ const {checkForAuthenticationCookie} = require("../middleware/authentication")
 // const connection = require('../db');
 const pool = require('../db');
 
-
-// router.post('/', (req, res) => {
-//     const {email, password} = req.body;
-
-//     //now checking email and password against database
-//     connection.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
-//         if(err) throw err;
-
-//         if(result.length > 0)
-//         {
-//             const user = result[0];
-            
-//             bcrypt.compare(password, user.password, (bcryptErr, bcryptResult) => {
-                
-//                 if(bcryptResult)
-//                 {
-//                     let token;
-//                     try {
-//                         token = jwt.sign(
-//                             {
-//                                 email: user.email,
-//                                 role: user.role,
-//                             },
-//                             process.env.JWT_SECRET,
-//                             { expiresIn: "1h" }
-//                         );
-//                     } catch (error) {
-//                         return res.status(500).send('Internal server error');
-//                     }
-
-//                     return res.cookie("token", token).send(`Standard login post request: Welcome ${email}`);
-            
-//                 }
-//                 else
-//                 {
-//                     return res.status(401).send('Incorrect password');
-//                 }
-//             });
-//         }
-//         else
-//         {
-//             return res.status(404).send('Email not found, please sign up');
-            
-//         }
-//     });
-// });
+router.use(express.json()); // Middleware to parse JSON data
+router.use(express.urlencoded({ extended: true }));
 
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { email, password } = req.body;
 
-    // Checking email and password against database
-    pool.query('SELECT * FROM users WHERE email = ?', [email], (err, result) => {
-        if (err) {
-            console.error('Database query error:', err);
-            return res.status(500).send('Internal server error');
-        }
+    if (!email || !password) {
+        console.error('Email or password missing');
+        return res.status(400).send('Email and password are required');
+    }
 
+    try {
+        const [result] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+        
         if (result.length > 0) {
             const user = result[0];
 
-            bcrypt.compare(password, user.password, (bcryptErr, bcryptResult) => {
-                if (bcryptErr) {
-                    console.error('Bcrypt comparison error:', bcryptErr);
+            const bcryptResult = await bcrypt.compare(password, user.password);
+
+            if (bcryptResult) {
+                let token;
+                try {
+                    token = jwt.sign(
+                        {
+                            email: user.email,
+                            role: user.role,
+                        },
+                        process.env.JWT_SECRET,
+                        { expiresIn: '1h' }
+                    );
+                } catch (error) {
+                    console.error('JWT signing error:', error);
                     return res.status(500).send('Internal server error');
                 }
 
-                if (bcryptResult) {
-                    let token;
-                    try {
-                        token = jwt.sign(
-                            {
-                                email: user.email,
-                                role: user.role,
-                            },
-                            process.env.JWT_SECRET,
-                            { expiresIn: "1h" }
-                        );
-                    } catch (error) {
-                        console.error('JWT signing error:', error);
-                        return res.status(500).send('Internal server error');
-                    }
-
-                    return res.cookie("token", token).send(`Standard login post request: Welcome ${email}`);
-                } else {
-                    return res.status(401).send('Incorrect password');
-                }
-            });
+                return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
+            } else {
+                console.log('Incorrect password');
+                return res.status(401).send('Incorrect password');
+            }
         } else {
+            console.log('Email not found');
             return res.status(404).send('Email not found, please sign up');
         }
-    });
+    } catch (err) {
+        console.error('Database query error:', err);
+        return res.status(500).send('Internal server error');
+    }
 });
 
 router.get('/data',async (req, res) => {

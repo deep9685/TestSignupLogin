@@ -20,19 +20,17 @@ const pool = require('./db');
 //     console.log("Database connected");
 // });
 
-pool.getConnection((err, connection) => {
-
-    console.log("i am here");
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
+// Ensure database connection
+async function testDbConnection() {
+    try {
+        await pool.query('SELECT 1');
+        console.log('Database connection successful');
+    } catch (err) {
+        console.error('Database connection error:', err);
     }
+}
 
-    console.log('Database connected');
-
-    // Release the connection back to the pool
-    connection.release();
-});
+testDbConnection();
 
 
 const SignupRoute = require('./routes/SignupRoute');
