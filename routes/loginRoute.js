@@ -63,7 +63,7 @@ router.post('/',async (req, res) => {
     }
 });
 
-router.get('/data',async (req, res) => {
+router.get('/data', checkForAuthenticationCookie("token"),async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT email, role FROM users');
 
