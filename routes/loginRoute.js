@@ -48,7 +48,7 @@ router.post('/', async (req, res) => {
                 }
 
                 // return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
-                return res.status(200).json({message: 'Login successful', token, user});
+                return res.status(200).cookie('token', token).json({message: 'Login successful', token, user});
             } else {
                 console.log('Incorrect password');
                 return res.status(401).send('Incorrect password');
