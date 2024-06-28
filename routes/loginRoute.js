@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const xlsx = require('xlsx');
 
-const {checkForAuthenticationCookie} = require("../middleware/authentication")
+const {authenticateToken} = require("../middleware/authentication")
 
 
 // const connection = require('../db');
@@ -49,8 +49,8 @@ router.post('/',async (req, res) => {
                 }
 
                 // return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
-                // return res.status(200).json({message: 'Login successful', token, user});
-                return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
+                return res.status(200).json({message: 'Login successful', token, user});
+                // return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
 
             } else {
                 console.log('Incorrect password');
@@ -66,7 +66,7 @@ router.post('/',async (req, res) => {
     }
 });
 
-router.get('/data', checkForAuthenticationCookie("token"),async (req, res) => {
+router.get('/data', authenticateToken,async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT email, role FROM users');
 
