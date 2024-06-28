@@ -101,7 +101,7 @@ router.post('/upload', authenticateToken, upload.array('files'), async (req, res
     }
 
     try {
-        // Process each uploaded file
+        // Process each uploaded fil
         for (const file of files) {
             if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel') {
                 // Process Excel file
