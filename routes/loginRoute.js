@@ -4,6 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const xlsx = require('xlsx');
 
 const {checkForAuthenticationCookie} = require("../middleware/authentication")
 
@@ -48,8 +49,8 @@ router.post('/',async (req, res) => {
                 }
 
                 // return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
-                return res.status(200).json({message: 'Login successful', token, user});
-                // return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
+                // return res.status(200).json({message: 'Login successful', token, user});
+                return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
 
             } else {
                 console.log('Incorrect password');
@@ -81,17 +82,17 @@ router.get('/data', checkForAuthenticationCookie("token"),async (req, res) => {
 });
 
 // setting up multer for file upload
-const storage  = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null, "./upload");
-    },
+// const storage  = multer.diskStorage({
+//     destination: function(req, file, cb){
+//         cb(null, "./upload");
+//     },
 
-    filename: function(req, file, cb){
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
+//     filename: function(req, file, cb){
+//         cb(null, Date.now() + '-' + file.originalname);
+//     }
+// });
 
-const upload = multer({storage: storage});
+// const upload = multer({storage: storage});
 
 
 router.get('/upload', (req,res) => {
@@ -123,6 +124,34 @@ router.get('/upload', (req,res) => {
 // })
 
 
+// router.post('/upload', upload.array('files'), async (req, res) => {
+//     const files = req.files;
+
+//     if (!files || files.length === 0) {
+//         return res.status(400).json({ message: 'No files were uploaded.' });
+//     }
+
+//     const fileDetails = files.map(file => [
+//         file.originalname,
+//         file.path,
+//         file.mimetype
+//     ]);
+
+//     const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
+
+//     try {
+//         const [result] = await pool.query(sql, [fileDetails]);
+//         res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
+//     } catch (err) {
+//         console.error('Database insert error:', err);
+//         res.status(500).json({ message: 'File upload failed' });
+//     }
+// });
+
+// Setup Multer for file uploads
+const upload = multer({ storage: multer.memoryStorage() });
+
+
 router.post('/upload', upload.array('files'), async (req, res) => {
     const files = req.files;
 
@@ -130,21 +159,49 @@ router.post('/upload', upload.array('files'), async (req, res) => {
         return res.status(400).json({ message: 'No files were uploaded.' });
     }
 
-    const fileDetails = files.map(file => [
-        file.originalname,
-        file.path,
-        file.mimetype
-    ]);
-
-    const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
-
     try {
-        const [result] = await pool.query(sql, [fileDetails]);
-        res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
+        // Process each uploaded file
+        for (const file of files) {
+            if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel') {
+                // Process Excel file
+                await processExcelFile(file.buffer, file.mimetype);
+            } else {
+                return res.status(400).json({ message: 'Unsupported file type' });
+            }
+        }
+
+        res.status(200).json({ message: 'Files processed successfully' });
     } catch (err) {
-        console.error('Database insert error:', err);
-        res.status(500).json({ message: 'File upload failed' });
+        console.error('File processing error:', err);
+        res.status(500).json({ message: 'File processing failed' });
     }
 });
+
+async function processExcelFile(buffer, fileType) {
+    const workbook = xlsx.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+    // Example: Assuming the columns in the Excel are 'home_chain', 'room_type', 'number', 'price'
+    const data = jsonData.map(row => [
+        row['Hotel Chain'],
+        row['Room Type'],
+        row['Number'],
+        row['Price per Night'],
+        // new Date(), // timestamp
+        fileType
+    ]);
+
+    console.log(data);  
+    const sql = 'INSERT INTO accommodations (home_chain, room_type, number, price_per_night, file_type) VALUES ?';
+
+    try {
+        await pool.query(sql, [data]);
+    } catch (err) {
+        console.error('Database insert error:', err);
+        throw err; // Rethrow the error to be caught in the calling function
+    }
+}
 
 module.exports = router;
