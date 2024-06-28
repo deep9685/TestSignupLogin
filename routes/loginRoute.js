@@ -37,6 +37,7 @@ router.post('/',async (req, res) => {
                 try {
                     token = jwt.sign(
                         {
+                            id: user.id,
                             email: user.email,
                             role: user.role,
                         },
@@ -49,6 +50,7 @@ router.post('/',async (req, res) => {
                 }
 
                 // return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
+                console.log(user);
                 return res.status(200).json({message: 'Login successful', token, user});
                 // return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
 
@@ -81,72 +83,11 @@ router.get('/data', authenticateToken,async (req, res) => {
     }
 });
 
-// setting up multer for file upload
-// const storage  = multer.diskStorage({
-//     destination: function(req, file, cb){
-//         cb(null, "./upload");
-//     },
-
-//     filename: function(req, file, cb){
-//         cb(null, Date.now() + '-' + file.originalname);
-//     }
-// });
-
-// const upload = multer({storage: storage});
-
 
 router.get('/upload', (req,res) => {
     res.render('fileupload.ejs');
 });
 
-// router.post('/upload', upload.array('files'), (req, res) => {
-
-//     const files = req.files;
-//     if (!files || files.length === 0) {
-//         return res.status(400).json({ message: 'No files were uploaded.' });
-//     }
-
-//     const fileDetails = files.map(file => [
-//         file.originalname,
-//         file.path,
-//         file.mimetype
-//     ]);
-
-//     const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
-    
-//     connection.query(sql, [fileDetails], (err, result) => {
-//         if (err) {
-//             console.error('Database insert error:', err);
-//             return res.status(500).json({ message: 'File upload failed' });
-//         }
-//         res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
-//     });
-// })
-
-
-// router.post('/upload', upload.array('files'), async (req, res) => {
-//     const files = req.files;
-
-//     if (!files || files.length === 0) {
-//         return res.status(400).json({ message: 'No files were uploaded.' });
-//     }
-
-//     const fileDetails = files.map(file => [
-//         file.originalname,
-//         file.path,
-//         file.mimetype
-//     ]);
-
-//     const sql = 'INSERT INTO files (file_name, file_path, file_type) VALUES ?';
-
-//     try {
-//         const [result] = await pool.query(sql, [fileDetails]);
-//         res.status(200).json({ message: 'Files uploaded successfully', files: fileDetails });
-//     } catch (err) {
-//         console.error('Database insert error:', err);
-//         res.status(500).json({ message: 'File upload failed' });
-//     }
-// });
 
 // Setup Multer for file uploads
 const upload = multer({ storage: multer.memoryStorage() });
@@ -164,7 +105,7 @@ router.post('/upload', upload.array('files'), async (req, res) => {
         for (const file of files) {
             if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel') {
                 // Process Excel file
-                await processExcelFile(file.buffer, file.mimetype);
+                await processExcelFile(file.buffer, file.originalname, req.user.id); // Assuming req.user.id contains the user ID
             } else {
                 return res.status(400).json({ message: 'Unsupported file type' });
             }
@@ -177,30 +118,44 @@ router.post('/upload', upload.array('files'), async (req, res) => {
     }
 });
 
-async function processExcelFile(buffer, fileType) {
+async function processExcelFile(buffer, originalname, userId) {
     const workbook = xlsx.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-    // Example: Assuming the columns in the Excel are 'home_chain', 'room_type', 'number', 'price'
-    const data = jsonData.map(row => [
-        row['Hotel Chain'],
-        row['Room Type'],
-        row['Number'],
-        row['Price per Night'],
-        // new Date(), // timestamp
-        fileType
-    ]);
-
-    console.log(data);  
-    const sql = 'INSERT INTO accommodations (home_chain, room_type, number, price_per_night, file_type) VALUES ?';
+    const connection = await pool.getConnection(); // Get a connection from the pool
 
     try {
-        await pool.query(sql, [data]);
+        await connection.beginTransaction(); // Begin transaction
+
+        // Insert into FileMetadata table
+        const [fileResult] = await connection.query('INSERT INTO FileMetadata (filename, userid) VALUES (?, ?)', [originalname, userId]);
+
+        const fileId = fileResult.insertId;
+
+        // Prepare data for insertion into Accommodations table
+        const data = jsonData.map(row => [
+            row['Hotel Chain'],
+            row['Room Type'],
+            row['Number'],
+            parseFloat(row['Price/night'].replace(/[^0-9.-]+/g, "")), // Removing dollar sign
+            fileId
+        ]);
+
+        const sql = 'INSERT INTO Accommodations (hotel_chain, room_type, number, price_per_night, file_id) VALUES ?';
+
+        await connection.query(sql, [data]);
+
+        await connection.commit(); // Commit transaction
+
+        console.log('Data inserted successfully');
     } catch (err) {
+        await connection.rollback(); // Rollback transaction in case of error
         console.error('Database insert error:', err);
         throw err; // Rethrow the error to be caught in the calling function
+    } finally {
+        connection.release(); // Release the connection back to the pool
     }
 }
 

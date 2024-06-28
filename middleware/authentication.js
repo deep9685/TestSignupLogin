@@ -36,6 +36,7 @@ const authenticateToken = (req, res, next) => {
       const decoded = validateToken(token);
       console.log('Decoded Token:', decoded); // Log the decoded token
       req.user = decoded;
+      console.log(req.user.id);
       next();
     } catch (error) {
       console.log('Invalid token:', error.message);
