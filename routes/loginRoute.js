@@ -70,7 +70,7 @@ router.post('/',async (req, res) => {
 
 router.get('/data', authenticateToken,async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT email, role FROM users');
+        const [rows] = await pool.query('SELECT id, email, role FROM users');
 
         if (rows.length > 0) {
             return res.status(200).json(rows);
