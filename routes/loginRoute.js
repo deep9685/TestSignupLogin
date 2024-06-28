@@ -159,4 +159,19 @@ async function processExcelFile(buffer, originalname, userId) {
     }
 }
 
+router.get('/filedata', authenticateToken,async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM Accommodations');
+
+        if (rows.length > 0) {
+            return res.status(200).json(rows);
+        } else {
+            return res.status(404).json({ message: 'No data found' });
+        }
+    } catch (err) {
+        console.error('Database query error:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;
