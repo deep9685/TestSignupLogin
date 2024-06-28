@@ -93,7 +93,7 @@ router.get('/upload', (req,res) => {
 const upload = multer({ storage: multer.memoryStorage() });
 
 
-router.post('/upload', upload.array('files'), async (req, res) => {
+router.post('/upload', authenticateToken, upload.array('files'), async (req, res) => {
     const files = req.files;
 
     if (!files || files.length === 0) {
