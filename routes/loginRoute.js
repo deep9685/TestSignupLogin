@@ -129,7 +129,7 @@ async function processExcelFile(buffer, originalname, userId) {
     try {
         await connection.beginTransaction(); // Begin transaction
 
-        // Insert into FileMetadata tabl
+        // Insert into FileMetadata table
         const [fileResult] = await connection.query('INSERT INTO FileMetadata (filename, userid) VALUES (?, ?)', [originalname, userId]);
 
         const fileId = fileResult.insertId;
