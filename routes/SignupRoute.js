@@ -12,7 +12,7 @@ const pool = require('../db');
 router.post('/', async (req, res) => {
   const { email, password, role } = req.body;
 
-  if(role == "admin"){
+  if(role === 'admin'){
     return res.status(500).json({message: "You can't set admin"});
   }
 

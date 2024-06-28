@@ -174,4 +174,36 @@ router.get('/filedata', authenticateToken,async (req, res) => {
     }
 });
 
+
+// Route to delete a user by ID
+router.delete('/user/:id', authenticateToken, async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+        // Check if the user is an admin
+        const [userResult] = await pool.query('SELECT role FROM users WHERE id = ?', [userId]);
+
+        if (userResult.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const userRole = userResult[0].role;
+        if (userRole === 'admin') {
+            return res.status(403).json({ message: 'Cannot delete an admin user' });
+        }
+
+        // Execute the delete query
+        const [deleteResult] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+
+        if (deleteResult.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (err) {
+        console.error('Database delete error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 module.exports = router;

@@ -58,6 +58,7 @@ app.get('/login', (req,res) => {
     res.render('login.ejs');
 });
 
+
 app.use('/signup', SignupRoute);
 app.use('/login', loginRoute);
 
