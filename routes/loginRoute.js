@@ -174,6 +174,22 @@ router.get('/filedata', authenticateToken,async (req, res) => {
     }
 });
 
+// Route to get the filedata for a specific user
+router.get('/filedata/:id', authenticateToken, async (req,res) => {
+    
+    const userId = req.params.id;
+
+    const query = `SELECT a.hotel_chain,a.room_type,a.number,a.price_per_night FROM Accommodations a JOIN FileMetadata fm ON a.file_id = fm.id WHERE fm.userid = ?;`;
+
+    try{
+        const [results] = await pool.query(query, [userId]);
+        res.status(200).json(results);
+    }catch(err){
+        console.error('Database query error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
 
 // Route to delete a user by ID
 router.delete('/user/:id', authenticateToken, async (req, res) => {
