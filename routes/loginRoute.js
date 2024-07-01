@@ -93,8 +93,13 @@ router.get('/upload', (req,res) => {
 const upload = multer({ storage: multer.memoryStorage() });
 
 
-router.post('/upload', authenticateToken, upload.array('files'), async (req, res) => {
+router.post('/upload/:type', authenticateToken, upload.array('files'), async (req, res) => {
+    console.log("I am here");
     const files = req.files;
+
+    const fileType = req.params.type;
+
+    console.log(fileType);
 
     if (!files || files.length === 0) {
         return res.status(400).json({ message: 'No files were uploaded.' });
@@ -105,7 +110,12 @@ router.post('/upload', authenticateToken, upload.array('files'), async (req, res
         for (const file of files) {
             if (file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel') {
                 // Process Excel file
-                await processExcelFile(file.buffer, file.originalname, req.user.id); // Assuming req.user.id contains the user ID
+                if(fileType == 1){
+                    await processExcelFileType1(file.buffer, file.originalname, req.user.id); // Assuming req.user.id contains the user ID
+                }else if(fileType == 2){
+                    await processExcelFileType2(file.buffer, file.originalname, req.user.id);
+                }
+                
             } else {
                 return res.status(400).json({ message: 'Unsupported file type' });
             }
@@ -118,7 +128,8 @@ router.post('/upload', authenticateToken, upload.array('files'), async (req, res
     }
 });
 
-async function processExcelFile(buffer, originalname, userId) {
+async function processExcelFileType1(buffer, originalname, userId) {
+    console.log("i am in file 1");
     const workbook = xlsx.read(buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
@@ -130,7 +141,7 @@ async function processExcelFile(buffer, originalname, userId) {
         await connection.beginTransaction(); // Begin transaction
 
         // Insert into FileMetadata table
-        const [fileResult] = await connection.query('INSERT INTO FileMetadata (filename, userid) VALUES (?, ?)', [originalname, userId]);
+        const [fileResult] = await connection.query('INSERT INTO FileMetadata (filename, userid, sheet_type) VALUES (?, ?, 1)', [originalname, userId]);
 
         const fileId = fileResult.insertId;
 
@@ -144,6 +155,47 @@ async function processExcelFile(buffer, originalname, userId) {
         ]);
 
         const sql = 'INSERT INTO Accommodations (hotel_chain, room_type, number, price_per_night, file_id) VALUES ?';
+
+        await connection.query(sql, [data]);
+
+        await connection.commit(); // Commit transaction
+
+        console.log('Data inserted successfully');
+    } catch (err) {
+        await connection.rollback(); // Rollback transaction in case of error
+        console.error('Database insert error:', err);
+        throw err; // Rethrow the error to be caught in the calling function
+    } finally {
+        connection.release(); // Release the connection back to the pool
+    }
+}
+
+async function processExcelFileType2(buffer, originalname, userId) {
+    console.log("i am in file 2");
+    const workbook = xlsx.read(buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[3];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+    const connection = await pool.getConnection(); // Get a connection from the pool
+
+    try {
+        await connection.beginTransaction(); // Begin transaction
+
+        // Insert into FileMetadata table
+        const [fileResult] = await connection.query('INSERT INTO FileMetadata (filename, userid, sheet_type) VALUES (?, ?, 2)', [originalname, userId]);
+
+        const fileId = fileResult.insertId;
+
+        // Prepare data for insertion into Accommodations table
+        const data = jsonData.map(row => [
+            row['Room Type'],
+            row['Quantity'],
+            row['Current Price'],
+            fileId
+        ]);
+
+        const sql = 'INSERT INTO RoomDetails (room_type, quantity, current_price, file_id) VALUES ?';
 
         await connection.query(sql, [data]);
 
