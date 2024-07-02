@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const xlsx = require('xlsx');
 
-const {authenticateToken} = require("../middleware/authentication")
+const {authenticateToken} = require("../middleware/authentication");
 
 
 // const connection = require('../db');
