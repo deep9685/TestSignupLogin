@@ -50,7 +50,7 @@ router.post('/',async (req, res) => {
                 }
 
                 // return res.cookie('token', token).send(`Standard login post request: Welcome ${email}`);
-                console.log(user);
+                console.log("login request : ", user);
                 return res.status(200).json({message: 'Login successful', token, user});
                 // return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
 
