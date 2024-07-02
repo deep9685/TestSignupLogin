@@ -61,6 +61,7 @@ router.post('/',async (req, res) => {
         } else {
             console.log('Email not found');
             return res.status(404).send('Email not found, please sign up');
+            
         }
     } catch (err) {
         console.error('Database query error:', err);
