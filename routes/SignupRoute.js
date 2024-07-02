@@ -14,6 +14,8 @@ const {authenticateToken} = require("../middleware/authentication");
 router.post('/', authenticateToken, async (req, res) => {
   const { name, email, password, role, category } = req.body;
 
+  console.log(req.body);
+
   if(role === 'admin'){
     return res.status(500).json({message: "You can't set admin"});
   }
