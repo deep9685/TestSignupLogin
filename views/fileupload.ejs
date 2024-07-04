@@ -11,13 +11,20 @@
         <button type="submit">Upload Files</button>
     </form>
 
+    <!-- <form method="post" action="/test">
+        <input type="number" name="percentField_1" placeholder="Enter percent field 1">
+        <input type="number" name="percentField_2" placeholder="Enter percent field 2">
+
+        <button type="submit">Submit</button>
+    </form> -->
+
     <script>
         document.getElementById('uploadForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const formData = new FormData(this);
 
             try {
-                const response = await fetch('/login/upload/2', {
+                const response = await fetch('/login/upload/1', {
                     method: 'POST',
                     body: formData
                 });

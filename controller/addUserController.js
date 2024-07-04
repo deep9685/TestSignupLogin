@@ -1,18 +1,12 @@
-require("dotenv").config();
-
-const express = require("express");
-const router = express.Router();
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-// const connection = require('../db');
+
 const pool = require('../db');
-const {authenticateToken} = require("../middleware/authentication");
 
 
-
-
-router.post('/', authenticateToken, async (req, res) => {
-  const { name, email, password, role, category } = req.body;
+// Function to handle adding a new User
+async function handleAddUser(req, res) {
+    const { name, email, password, role, category } = req.body;
 
   console.log(req.body);
 
@@ -41,6 +35,8 @@ router.post('/', authenticateToken, async (req, res) => {
       console.error('Error:', err);
       res.status(500).json({ error: "Internal server error" });
   }
-});
+}
 
-module.exports = router;
+module.exports = {
+    handleAddUser,
+};
