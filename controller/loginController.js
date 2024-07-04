@@ -23,10 +23,10 @@ async function handleLogin(req, res) {
     if (result.length > 0) {
       const user = result[0];
 
-      const q = `SELECT c.category_name FROM users u JOIN category c ON JSON_CONTAINS(u.category, CAST(c.id AS JSON), '$') WHERE u.id = ${user.id};`;
+      // const q = `SELECT c.category_name FROM users u JOIN category c ON JSON_CONTAINS(u.category, CAST(c.id AS JSON), '$') WHERE u.id = ${user.id};`;
 
       // const q = `SELECT GROUP_CONCAT(c.category_name) AS category_names FROM users u JOIN category c ON JSON_CONTAINS(u.category, CAST(c.id AS JSON), '$') WHERE u.id = ${user.id};`;
-      const [category] = await pool.query(q);
+      // const [category] = await pool.query(q);
 
       const bcryptResult = await bcrypt.compare(password, user.password);
 
@@ -51,7 +51,7 @@ async function handleLogin(req, res) {
         console.log("login request : ", user);
         return res
           .status(200)
-          .json({ message: "Login successful", token, user, category });
+          .json({ message: "Login successful", token, user });
         // return res.cookie('token', token, { httpOnly: true }).status(200).json({ message: 'Login successful', token, user });
       } else {
         console.log("Incorrect password");
