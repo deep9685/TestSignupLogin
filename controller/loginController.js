@@ -162,6 +162,8 @@ async function processExcelFileType1(buffer, originalname, userId) {
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+    console.log("I am i process file typ 1");
   
     const connection = await pool.getConnection(); // Get a connection from the pool
   
