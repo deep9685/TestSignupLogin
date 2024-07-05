@@ -386,7 +386,7 @@ async function handleGetFiledata(req, res){
 async function handleGetUserSpecificFiledata(req, res) {
   const userId = req.params.id;
 
-  const query = `SELECT a.hotel_chain,a.room_type,a.number,a.price_per_night FROM Accommodations a JOIN FileMetadata fm ON a.file_id = fm.id WHERE fm.userid = ?;`;
+  const query = `SELECT * FROM Table_1 t JOIN FileMetadata fm ON t.file_id = fm.id WHERE fm.userid = ?;`;
 
   try {
     const [results] = await pool.query(query, [userId]);
