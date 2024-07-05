@@ -282,7 +282,7 @@ async function processExcelFileType2(buffer, originalname, userId) {
 // Controller to get excel file data
 async function handleGetFiledata(req, res){
   try {
-    const [rows] = await pool.query("SELECT * FROM Accommodations");
+    const [rows] = await pool.query("SELECT * FROM Table_1");
 
     if (rows.length > 0) {
       return res.status(200).json(rows);
