@@ -92,10 +92,10 @@ async function handleFileUpload(req, res) {
     const files = req.files;
 
     const data = req.body;
-    
-    console.log(data);
 
-    console.log(files);
+    console.log("Json data : " ,data);
+
+    console.log("Files data : " ,files);
 
     const fileType = req.params.type;
 
