@@ -91,6 +91,9 @@ async function handleFileUpload(req, res) {
     console.log("I am here");
     const files = req.files;
 
+    const data = req.body;
+    console.log(data);
+
     console.log(files);
 
     const fileType = req.params.type;
