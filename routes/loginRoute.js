@@ -22,6 +22,7 @@ const {
         handleGetUserSpecificFiledata,
         handleDeleteUser,
         handleVariableDataUpload,
+        handleGetAllCategory,
 
                           } = require('../controller/loginController')
 
@@ -278,5 +279,10 @@ router.get("/filedata/:id", authenticateToken, handleGetUserSpecificFiledata);
 
 // Route to delete a user by ID
 router.delete("/user/:id", authenticateToken, handleDeleteUser);
+
+// --------------------------------------------------------------------------------->
+
+// Route to get all category
+router.get("/category", authenticateToken, handleGetAllCategory);
 
 module.exports = router;

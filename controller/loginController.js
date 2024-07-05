@@ -112,7 +112,7 @@ async function handleFileUpload(req, res) {
             await processExcelFileType1(
               file.buffer,
               file.originalname,
-              10
+              req.user.id
             ); // Assuming req.user.id contains the user ID
           } else {
             return res
@@ -383,6 +383,24 @@ async function handleVariableDataUpload(req, res){
   }
 }
 
+// Controller to get all category data
+async function handleGetAllCategory(req, res){
+  try {
+      const [rows] = await pool.query(
+        "SELECT * FROM category"
+      );
+  
+      if (rows.length > 0) {
+        return res.status(200).json(rows);
+      } else {
+        return res.status(404).json({ message: "No data found" });
+      }
+    } catch (err) {
+      console.error("Database query error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+}
+
 module.exports = {
     handleLogin,
     handleGetAllUser,
@@ -390,5 +408,6 @@ module.exports = {
     handleGetFiledata,
     handleGetUserSpecificFiledata,
     handleDeleteUser,
-    handleVariableDataUpload
+    handleVariableDataUpload,
+    handleGetAllCategory
 };
