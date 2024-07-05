@@ -174,6 +174,8 @@ async function processExcelFileType1(buffer, originalname, userId) {
         [originalname, userId]
       );
       const fileId = metadataResult.insertId;
+
+      console.log(jsonData);
   
       // Prepare data for insertion into Table_1 using the mapping
       const data = jsonData.map((row) => [
