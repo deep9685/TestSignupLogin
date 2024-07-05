@@ -59,21 +59,14 @@ router.get("/upload", (req, res) => {
 // // Route to handle excel data of type 1 and 2
 router.post('/upload/:type', authenticateToken, async (req, res) => {
   console.log("I am here");
-    // const files = req.files;
 
     const data = req.body;
 
     console.log("Json data : " , data);
 
-    // console.log("Files data : " ,files);
-
     const fileType = req.params.type;
 
     console.log(fileType);
-
-    // if (!files || files.length === 0) {
-    //   return res.status(400).json({ message: "No files were uploaded." });
-    // }
 
     try {
       if (fileType == 1) {
@@ -113,7 +106,7 @@ async function processExcelFileType1(jsonData, originalname, userId) {
     );
     const fileId = metadataResult.insertId;
 
-    console.log(jsonData);
+    // console.log(jsonData);
 
     // Prepare data for insertion into Table_1 using the mapping
     const data = jsonData.map((row) => [

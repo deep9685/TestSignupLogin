@@ -386,7 +386,7 @@ async function handleGetFiledata(req, res){
 async function handleGetUserSpecificFiledata(req, res) {
   const userId = req.params.id;
 
-  const query = `SELECT * FROM Table_1 t JOIN FileMetadata fm ON t.file_id = fm.id WHERE fm.userid = ?;`;
+  const query = `SELECT t.Text1,t.Text2, t.Text3, t.Text4, t.Text5, t.Text6, t.Text7, t.Text8, t.Text9, t.Text10, t.Text11, t.Text12, t.Text13, t.Text14, t.Numeric1, t.Numeric2, t.Numeric3, t.Numeric4, t.Numeric5, t.Numeric6, t.Numeric7, t.Numeric8, t.Numeric9, t.Numeric10, t.Numeric11, t.Numeric12, t.SpareText1, t.SpareText2, t.SpareNumeric1, t.SpareNumeric2 FROM Table_1 t JOIN FileMetadata fm ON t.file_id = fm.id WHERE fm.userid = ?;`;
 
   try {
     const [results] = await pool.query(query, [userId]);
