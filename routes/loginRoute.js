@@ -78,8 +78,18 @@ router.post('/upload/:type', authenticateToken, async (req, res) => {
               req.user.id
             );
 
-        res.status(200).json({ message: "Files processed successfully" });
-      }  else {
+        res.status(200).json({ message: "Files of Table 1 processed successfully" });
+      } else if(fileType == 2){
+
+        await processExcelFileType2(
+          data,
+          "test.xlsx",
+          req.user.id
+        );
+
+        res.status(200).json({ message: "Files of Table 2 processed successfully" });
+
+      } else {
         return res
           .status(400)
           .json({ message: "Unsupported sheet type, It should 1 or 2" });
@@ -145,6 +155,50 @@ async function processExcelFileType1(jsonData, originalname, userId) {
 
     const sql =
       "INSERT INTO Table_1 (Text1, Text2, Text3, Text4, Text5, Text6, Text7, Text8, Text9, Text10, Text11, Text12, Text13, Text14, Numeric1, Numeric2, Numeric3, Numeric4, Numeric5, Numeric6, Numeric7, Numeric8, Numeric9, Numeric10, Numeric11, Numeric12, SpareText1, SpareText2, SpareNumeric1, SpareNumeric2, file_id) VALUES ?";
+
+    await connection.query(sql, [data]);
+
+    await connection.commit(); // Commit transaction
+
+    console.log("Data inserted successfully");
+  } catch (err) {
+    await connection.rollback(); // Rollback transaction on error
+    console.error("Database insert error:", err);
+    throw err; // Rethrow the error to be caught in the calling function
+  } finally {
+    connection.release(); // Release the connection back to the pool
+  }
+}
+
+// Function for excel uploading for table 2
+async function processExcelFileType2(jsonData, originalname, userId) {
+
+  console.log("I am in process file typ 1");
+  
+  const connection = await pool.getConnection(); // Get a connection from the pool
+
+  try {
+    await connection.beginTransaction(); // Begin transaction
+
+    // Insert metadata into FileMetadata table
+    const [metadataResult] = await connection.query(
+      "INSERT INTO FileMetadata (filename, userid, sheet_type) VALUES (?, ?, 2)",
+      [originalname, userId]
+    );
+    const fileId = metadataResult.insertId;
+
+    // Prepare data for insertion into Table_1 using the mapping
+    const data = jsonData.map((row) => [
+      row["Text 1"] || null,
+      row["Numeric 1"] || null,
+      row["Numeric 2"] || null,
+      row["Numeric 3"] || null,
+      row["Text 2"] || null,
+      fileId,
+    ]);
+
+    const sql =
+      "INSERT INTO Table_2 (Text1, Numeric1, Numeric2, Numeric3, Text2, file_id) VALUES ?";
 
     await connection.query(sql, [data]);
 
