@@ -19,10 +19,11 @@ const {
         handleGetAllUser,
         handleFileUpload,
         handleGetFiledata,
-        handleGetUserSpecificFiledata,
         handleDeleteUser,
         handleVariableDataUpload,
         handleGetAllCategory,
+        handleGetUserSpecificFiledata2,
+        handleGetUserSpecificFiledata1,
 
                           } = require('../controller/loginController')
 
@@ -173,7 +174,7 @@ async function processExcelFileType1(jsonData, originalname, userId) {
 // Function for excel uploading for table 2
 async function processExcelFileType2(jsonData, originalname, userId) {
 
-  console.log("I am in process file typ 1");
+  console.log("I am in process file typ 2");
   
   const connection = await pool.getConnection(); // Get a connection from the pool
 
@@ -437,8 +438,11 @@ router.get("/filedata", authenticateToken, handleGetFiledata);
 
 // --------------------------------------------------------------------------------->
 
-// Route to get the filedata for a specific user
-router.get("/filedata/:id", authenticateToken, handleGetUserSpecificFiledata);
+// Route to get the filedata for Table 1 for a specific user
+router.get("/filedata1/:id", authenticateToken, handleGetUserSpecificFiledata1);
+
+// Route to get the filedata for Table 1 for a specific user
+router.get("/filedata2/:id", authenticateToken, handleGetUserSpecificFiledata2);
 
 // --------------------------------------------------------------------------------->
 

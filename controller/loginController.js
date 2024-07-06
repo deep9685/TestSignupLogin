@@ -382,11 +382,26 @@ async function handleGetFiledata(req, res){
   }
 }
 
-// Controller to get File data for a specific user
-async function handleGetUserSpecificFiledata(req, res) {
+// Controller to get File data of Table 1 for a specific user
+async function handleGetUserSpecificFiledata1(req, res) {
   const userId = req.params.id;
 
   const query = `SELECT t.Text1,t.Text2, t.Text3, t.Text4, t.Text5, t.Text6, t.Text7, t.Text8, t.Text9, t.Text10, t.Text11, t.Text12, t.Text13, t.Text14, t.Numeric1, t.Numeric2, t.Numeric3, t.Numeric4, t.Numeric5, t.Numeric6, t.Numeric7, t.Numeric8, t.Numeric9, t.Numeric10, t.Numeric11, t.Numeric12, t.SpareText1, t.SpareText2, t.SpareNumeric1, t.SpareNumeric2 FROM Table_1 t JOIN FileMetadata fm ON t.file_id = fm.id WHERE fm.userid = ?;`;
+
+  try {
+    const [results] = await pool.query(query, [userId]);
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Database query error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// Controller to get File data of Table 2 for a specific user
+async function handleGetUserSpecificFiledata2(req, res) {
+  const userId = req.params.id;
+
+  const query = `SELECT t.Text1,t.Numeric1, t.Numeric2, t.Numeric3, t.Text2 FROM Table_2 t JOIN FileMetadata fm ON t.file_id = fm.id WHERE fm.userid = ?;`;
 
   try {
     const [results] = await pool.query(query, [userId]);
@@ -499,7 +514,8 @@ module.exports = {
     handleGetAllUser,
     handleFileUpload,
     handleGetFiledata,
-    handleGetUserSpecificFiledata,
+    handleGetUserSpecificFiledata1,
+    handleGetUserSpecificFiledata2,
     handleDeleteUser,
     handleVariableDataUpload,
     handleGetAllCategory
