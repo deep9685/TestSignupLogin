@@ -37,7 +37,7 @@ async function handleAddUser(req, res) {
       res.send(`Standard Signup post request: Welcome ${email}`);
   } catch (err) {
       console.error('Error:', err);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Internal server error", err });
   }
 }
 
