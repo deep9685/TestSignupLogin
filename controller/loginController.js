@@ -71,7 +71,7 @@ async function handleLogin(req, res) {
 async function handleGetAllUser(req, res){
     try {
         const [rows] = await pool.query(
-          "SELECT id, name, email, role, category FROM users"
+          "SELECT u.id, u.name, u.email, u.role, GROUP_CONCAT(c.category_name ORDER BY c.category_name SEPARATOR ', ') AS category_names FROM users u LEFT JOIN category c ON JSON_CONTAINS(u.category, CAST(c.id AS JSON), '$') GROUP BY u.id, u.name, u.email, u.role;"
         );
     
         if (rows.length > 0) {
