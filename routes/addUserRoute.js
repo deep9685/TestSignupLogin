@@ -8,4 +8,5 @@ const {handleAddUser} = require('../controller/addUserController');
 // Route to Add a user
 router.post('/', authenticateToken, handleAddUser);
 
+
 module.exports = router;
