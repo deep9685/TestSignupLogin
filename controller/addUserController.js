@@ -19,12 +19,16 @@ async function handleAddUser(req, res) {
   }
 
   try {
+
+      // Convert the category array to a JSON string
+      const categoryJson = JSON.stringify(category);
+
       // Hash the password
       const hash = await bcrypt.hash(password, saltRounds);
       
       // Prepare the query and user data
       const q = "INSERT INTO users (name, email, password, role, category) VALUES (?, ?, ?, ?, ?)";
-      const user = [name, email, hash, role, category];
+      const user = [name, email, hash, role, categoryJson];
 
       // Execute the query using the pool
       const [result] = await pool.query(q, user);
