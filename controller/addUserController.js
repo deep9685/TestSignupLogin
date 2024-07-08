@@ -8,7 +8,7 @@ const pool = require('../db');
 async function handleAddUser(req, res) {
     const { name, email, password, role, category } = req.body;
 
-  console.log(req.body);
+    console.log("Request body:", req.body);
 
   if(role === 'admin'){
     return res.status(500).json({message: "You can't set admin"});
@@ -30,14 +30,16 @@ async function handleAddUser(req, res) {
       const q = "INSERT INTO users (name, email, password, role, category) VALUES (?, ?, ?, ?, ?)";
       const user = [name, email, hash, role, categoryJson];
 
+      console.log("Executing query:", q, "with data:", user);
+
       // Execute the query using the pool
       const [result] = await pool.query(q, user);
       
-      console.log(result);
+      console.log("Query result:", result);
       res.send(`Standard Signup post request: Welcome ${email}`);
   } catch (err) {
       console.error('Error:', err);
-      res.status(500).json({ error: "Internal server error", err });
+      res.status(500).json({ error: "Internal server error", details: err.message });
   }
 }
 
