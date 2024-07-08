@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const xlsx = require("xlsx");
+// const multer = require("multer");
+// const xlsx = require("xlsx");
+
+const saltRounds = 10;
 
 const pool = require("../db");
 
@@ -327,6 +329,59 @@ async function handleDeleteUser(req, res){
   }
 }
 
+// Controller to edit a user by its id
+async function handleEditUser(req, res){
+  const userId = req.params.id;
+  const { name, email, password, role, category } = req.body;
+
+  // Check if the user has the admin role
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: "Only admin can update user data" });
+  }
+
+  // Convert the category array to a JSON string
+  const categoryJson = JSON.stringify(category);
+
+  let query = `
+    UPDATE users
+    SET 
+        name = ?, 
+        email = ?, 
+        role = ?, 
+        category = ?
+  `;
+  const queryParams = [name, email, role, categoryJson];
+
+  // Check if the password needs to be updated
+  if (password) {
+    try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      query += `, password = ?`;
+      queryParams.push(hashedPassword); // Add hashed password to the end of the parameters array
+    } catch (err) {
+      console.error("Password hashing error:", err);
+      return res.status(500).json({ message: "Internal server error", err });
+    }
+  }
+
+  query += ` WHERE id = ?;`;
+  queryParams.push(userId); // Add userId as the last parameter
+
+  try {
+    const [result] = await pool.query(query, queryParams);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User data updated successfully" });
+  } catch (err) {
+    console.error("Database update error:", err);
+    res.status(500).json({ message: "Internal server error", err });
+  }
+}
+
 // Controller to handle variable data file
 async function handleVariableDataUpload(req, res){
   const data = req.body;
@@ -398,6 +453,7 @@ module.exports = {
     handleGetUserSpecificFiledata1,
     handleGetUserSpecificFiledata2,
     handleDeleteUser,
+    handleEditUser,
     handleVariableDataUpload,
     handleGetAllCategory
 };

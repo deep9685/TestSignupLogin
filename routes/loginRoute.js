@@ -24,6 +24,7 @@ const {
         handleGetAllCategory,
         handleGetUserSpecificFiledata2,
         handleGetUserSpecificFiledata1,
+        handleEditUser,
 
                           } = require('../controller/loginController')
 
@@ -70,6 +71,11 @@ router.get("/filedata2/:id/:category_id", authenticateToken, handleGetUserSpecif
 
 // Route to delete a user by ID
 router.delete("/user/:id", authenticateToken, handleDeleteUser);
+
+// --------------------------------------------------------------------------------->
+
+// Route to Edit a user data by ID
+router.patch("/user/:id", authenticateToken, handleEditUser)
 
 // ------------------------------------------------------------------------------------->
 
